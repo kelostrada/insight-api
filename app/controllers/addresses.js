@@ -313,14 +313,14 @@ module.exports.requestDeposits = function(req, res) {
 
     if (data.ignoredTx.indexOf(tx) >= 0 ) {
       // TODO: It's here for debugging purposes
-      console.log("Ignoring tx: " + tx);
+      // console.log("Ignoring tx: " + tx);
       return cb(true);
     }
 
     transactions.getTransaction(tx, function(err, txinfo) {
 
       if (err) {
-        console.log(err.error);
+        console.log("ERROR: " + err);
         return cb(true);
       }
 
@@ -342,7 +342,7 @@ module.exports.requestDeposits = function(req, res) {
         // if the address is on vin list then we should ignore this transaction too
         if (checkAddressInVins(vins, addr)) {
           // TODO: It's here for debugging purposes
-          console.log("Ignoring TX: " + tx + " because it's an outgoing transaction");
+          // console.log("Ignoring TX: " + tx + " because it's an outgoing transaction");
           continue;
         }
 
