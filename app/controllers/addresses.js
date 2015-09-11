@@ -346,7 +346,7 @@ module.exports.requestDeposits = function(req, res) {
           amount: vout.value,
           confirmations: txinfo.confirmations,
           address: addr,
-          timeStamp: txinfo.time
+          timestamp: txinfo.time
         });
 
       }
