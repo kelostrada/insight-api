@@ -317,7 +317,7 @@ module.exports.requestDeposits = function(req, res) {
       return cb(true);
     }
 
-    transactions.getTransaction(tx, function(ncb, txinfo) {
+    var err = transactions.getTransaction(tx, function(ncb, txinfo) {
 
       var vins = txinfo.vin;
 
@@ -353,6 +353,10 @@ module.exports.requestDeposits = function(req, res) {
 
       return cb(true);
     });
+
+    if (err && err.txid) {
+      return cb(true);
+    }
   }
 
   var iterator = function(addr, cb) {
