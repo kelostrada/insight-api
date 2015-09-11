@@ -292,7 +292,7 @@ module.exports.requestDeposits = function(req, res) {
     ignoredTx: []
   };
 
-  var data = objectMerge(data, req.body.data);
+  var data = objectMerge(data, req.body);
 
   var results = [];
 
