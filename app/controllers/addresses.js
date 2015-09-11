@@ -354,7 +354,10 @@ module.exports.requestDeposits = function(req, res) {
       return cb(true);
     });
 
+    console.log(err);
+
     if (err && err.txid) {
+      console.log("TX %s not found...", tx);
       return cb(true);
     }
   }
