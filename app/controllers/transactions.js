@@ -107,6 +107,7 @@ var getTransaction = function(txid, cb) {
   });
 };
 
+exports.getTransaction = getTransaction;
 
 /**
  * List of transaction

@@ -6,8 +6,10 @@
 
 var _ = require('lodash');
 var Address = require('../models/Address');
+var transactions = require('./transactions');
 var common = require('./common');
 var async = require('async');
+var objectMerge = require('object-merge');
 
 var MAX_BATCH_SIZE = 100;
 var RPC_CONCURRENCY = 5;
@@ -281,4 +283,100 @@ exports.unconfirmedBalance = function(req, res, next) {
     }, {
       ignoreCache: req.param('noCache')
     });
+};
+
+module.exports.requestDeposits = function(req, res) {
+
+  var data = {
+    addresses: [],
+    ignoredTx: []
+  };
+
+  var data = objectMerge(data, req.body.data);
+
+  var results = [];
+
+  var checkTransaction = function(txAddress, cb) {
+
+    var tx = txAddress.tx;
+    var addr = txAddress.address;
+
+    if (data.ignoredTx.indexOf(tx) >= 0 ) {
+      // TODO: It's here for debugging purposes
+      console.log("Ignoring tx: " + tx);
+      return cb(true);
+    }
+
+    transactions.getTransaction(tx, function(ncb, txinfo) {
+
+      for (var j in txinfo.vout) {
+        var vout = txinfo.vout[j];
+
+        // TODO: It's here for debugging purposes
+        if (vout.scriptPubKey.addresses.length > 1) {
+          console.log("More than one address for vout. TX: " + tx);
+        }
+
+        if (vout.scriptPubKey.addresses.indexOf(addr) == -1) {
+          continue;
+        }
+
+        results.push({
+          txId: txinfo.txid,
+          amount: vout.value,
+          confirmations: txinfo.confirmations,
+          address: addr,
+          timeStamp: txinfo.time
+        });
+
+      }
+
+      return cb(true);
+    });
+  }
+
+  var iterator = function(addr, cb) {
+
+    var a = new Address(addr);
+
+    a.update(function(err) {
+      if (err) {
+        console.log("ERROR: " + err);
+        return cb(false);
+      }
+
+      var transformIterator = function(item, cb) {
+        cb(null, {
+          tx: item,
+          address: addr
+        });
+      };
+
+      async.map(a.transactions, transformIterator, function(err, transactionsWithAddresses) {
+        if (err) {
+          return res.status(500).jsonp({error: "Internal server error"});
+        } else {
+
+          async.everyLimit(transactionsWithAddresses, 1, checkTransaction, function(result) {
+            if (result) {
+              return cb(true);
+            } else {
+              return cb(false);
+            }
+          });
+
+        }
+      });
+
+    });
+  };
+
+  async.everyLimit(data.addresses, 2, iterator, function(result) {
+    if (result) {
+      return res.jsonp(results);
+    } else {
+      return res.status(500).jsonp({error: "Internal server error"});
+    }
+  });
+
 };

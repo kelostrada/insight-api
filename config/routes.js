@@ -46,6 +46,9 @@ module.exports = function(app) {
   app.get(apiPrefix + '/addr/:addr/totalSent', addresses.totalSent);
   app.get(apiPrefix + '/addr/:addr/unconfirmedBalance', addresses.unconfirmedBalance);
 
+  // TxIn for Addresses
+  app.post(apiPrefix + '/addr/requestDeposits', addresses.requestDeposits);
+
   // Status route
   var st = require('../app/controllers/status');
   app.get(apiPrefix + '/status', st.show);
