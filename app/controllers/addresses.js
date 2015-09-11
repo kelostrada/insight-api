@@ -317,7 +317,12 @@ module.exports.requestDeposits = function(req, res) {
       return cb(true);
     }
 
-    var err = transactions.getTransaction(tx, function(ncb, txinfo) {
+    transactions.getTransaction(tx, function(err, txinfo) {
+
+      if (err) {
+        console.log(err.error);
+        return cb(true);
+      }
 
       var vins = txinfo.vin;
 
@@ -353,13 +358,6 @@ module.exports.requestDeposits = function(req, res) {
 
       return cb(true);
     });
-
-    console.log(err);
-
-    if (err && err.txid) {
-      console.log("TX %s not found...", tx);
-      return cb(true);
-    }
   }
 
   var iterator = function(addr, cb) {
