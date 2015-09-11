@@ -296,6 +296,16 @@ module.exports.requestDeposits = function(req, res) {
 
   var results = [];
 
+  var checkAddressInVins = function(vins, address) {
+
+    for (var i in vins) {
+      var vin = vins[i];
+      if (vin.addr == address) return true;
+    }
+
+    return false;
+  }
+
   var checkTransaction = function(txAddress, cb) {
 
     var tx = txAddress.tx;
@@ -309,6 +319,8 @@ module.exports.requestDeposits = function(req, res) {
 
     transactions.getTransaction(tx, function(ncb, txinfo) {
 
+      var vins = txinfo.vin;
+
       for (var j in txinfo.vout) {
         var vout = txinfo.vout[j];
 
@@ -317,7 +329,15 @@ module.exports.requestDeposits = function(req, res) {
           console.log("More than one address for vout. TX: " + tx);
         }
 
+        // if the address isn't on vout's address list we should ignore this vout then
         if (vout.scriptPubKey.addresses.indexOf(addr) == -1) {
+          continue;
+        }
+
+        // if the address is on vin list then we should ignore this transaction too
+        if (checkAddressInVins(vins, addr)) {
+          // TODO: It's here for debugging purposes
+          console.log("Ignoring TX: " + tx + " because it's an outgoing transaction");
           continue;
         }
 
