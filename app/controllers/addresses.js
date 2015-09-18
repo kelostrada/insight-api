@@ -289,8 +289,21 @@ module.exports.requestDeposits = function(req, res) {
 
   var data = {
     addresses: [],
-    ignoredTx: []
+    ignoredTx: {}
   };
+
+  /*
+  For instance:
+  {
+    addresses: ["37S8pFFnkvSXBJJirKjDyrNDPuxZdeMM3N", "112YLHixXWGghSspt3skMFRsfohrXA1kX4"],
+    ignoredTx: {
+      "37S8pFFnkvSXBJJirKjDyrNDPuxZdeMM3N": [
+        "2a96cacd5fc7aef0e7e842e9d36b083ade1eae9c695683931dec127041d7ccc1",
+        "5a0b6a0c7f17e0030503edf8e71b8740ba7916c10ff91ca74123d0afeefe1890"
+      ]
+    }
+  }
+  */
 
   var data = objectMerge(data, req.body);
 
@@ -311,7 +324,7 @@ module.exports.requestDeposits = function(req, res) {
     var tx = txAddress.tx;
     var addr = txAddress.address;
 
-    if (data.ignoredTx.indexOf(tx) >= 0 ) {
+    if (addr in data.ignoredTx && data.ignoredTx[addr].indexOf(tx) >= 0 ) {
       // TODO: It's here for debugging purposes
       // console.log("Ignoring tx: " + tx);
       return cb(true);
@@ -361,6 +374,8 @@ module.exports.requestDeposits = function(req, res) {
   }
 
   var iterator = function(addr, cb) {
+
+
 
     var a = new Address(addr);
 
